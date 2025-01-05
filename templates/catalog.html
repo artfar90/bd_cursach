@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Каталог товаров</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <link rel="stylesheet" href="/static/styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+            max-width: 800px;
+            margin: auto;
+        }
+
+        li {
+            background: #fff;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        strong {
+            font-size: 1.2em;
+        }
+
+        form {
+            display: flex;
+            align-items: center;
+        }
+
+        input[type="number"] {
+            width: 60px;
+            margin-right: 10px;
+        }
+
+        button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 6px 12px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        .logout-button {
+            background-color: #dc3545; /* Красный цвет для кнопки выхода */
+            margin-left: 10px; /* Отступ слева */
+            color: white; 
+             border: none; 
+             border-radius: 5px; 
+             padding: 6px 12px; 
+             cursor: pointer; 
+             transition: background-color 0.3s; 
+         } 
+
+         .logout-button:hover { 
+             background-color: #c82333; /* Темно-красный на наведении */ 
+         } 
+
+         .navigation { 
+             text-align: center; 
+             margin-top: 30px; 
+         } 
+
+         .navigation a { 
+             margin: 0 10px; 
+             color: #007bff; 
+             text-decoration: none; 
+             font-weight: bold; 
+             transition: color 0.3s; 
+         } 
+
+         .navigation a:hover { 
+             color: #0056b3; 
+         } 
+
+         .message { 
+             margin-bottom: 20px; 
+             padding: 10px; 
+             background-color: #f0f8ff; 
+             border: 1px solid #007bff; 
+             color: #007bff; 
+             border-radius: 5px; 
+         } 
+     </style> 
+ </head> 
+ <body> 
+     <h1>Каталог товаров</h1> 
+     {% if message %} 
+     <div class="message">{{ message }}</div> 
+     {% endif %} 
+     <ul> 
+         {% for product in products %} 
+         <li> 
+             <span><strong>{{ product[1] }}</strong> - {{ product[2] }} руб. (Остаток: {{ product[3] }})</span> 
+             <form action="/add_to_cart/" method="post"> 
+                 <input type="hidden" name="product_id" value="{{ product[0] }}"> 
+                 <input type="number" name="quantity" value="1" min="1" max="{{ product[3] }}"> 
+                 <button type="submit">Добавить в корзину</button> 
+             </form> 
+         </li> 
+         {% endfor %} 
+     </ul> 
+     <div class="navigation"> 
+         <a href="/add_product/">Добавить новый товар</a> 
+         <a href="/cart/">Перейти в корзину</a> 
+         <!-- Кнопка выхода из аккаунта --> 
+         <form action="/logout/" method="post" style="display: inline;"> 
+             <button type="submit" class="logout-button">Выйти</button> 
+         </form> 
+     </div> 
+     <script> 
+         const urlParams = new URLSearchParams(window.location.search); 
+         const message = urlParams.get('message'); 
+         if (message) { 
+             toastr.success(message); 
+         } 
+     </script> 
+ </body> 
+ </html>

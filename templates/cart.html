@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Корзина</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+            max-width: 800px;
+            margin: auto;
+        }
+
+        li {
+            background: #fff;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        form {
+            display: inline;
+        }
+
+        button {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 6px 12px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #c82333;
+        }
+
+        .navigation {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .navigation a {
+            margin: 0 10px;
+            color: #007bff;
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.3s;
+        }
+
+        .navigation a:hover {
+            color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Корзина</h1>
+    <ul>
+        {% for item in cart %}
+        <li>
+            {{ item[2] }} (ID: {{ item[1] }}) - Количество: {{ item[3] }}
+            <form action="/remove_from_cart/" method="post">
+                <input type="hidden" name="cart_item_id" value="{{ item[0] }}">
+                <button type="submit">Удалить</button>
+            </form>
+        </li>
+        {% endfor %}
+    </ul>
+    <div class="navigation">
+        <a href="/check_card/">Перейти к оформлению заказа</a>
+        <a href="/catalog/">Перейти к каталогу</a>
+    </div>
+</body>
+</html>
