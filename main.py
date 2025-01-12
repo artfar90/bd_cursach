@@ -253,7 +253,7 @@ async def create_check_card(
     db: sqlite3.Connection = Depends(get_db)
 ):
     try:
-        # Простая проверка номера карты (можно использовать более сложные алгоритмы)
+        # Простая проверка номера карты
         if len(card_number) != 16 or not card_number.isdigit():
             return RedirectResponse(url="/check_card/?message=Неверный номер карты", status_code=303)
 
@@ -265,7 +265,8 @@ async def create_check_card(
             if expiration_month < 1 or expiration_month > 12:
                 return RedirectResponse(url="/check_card/?message=Неправильный формат срока действия карты", status_code=303)
             if expiration_year < int(str(datetime.now().year)[2:]) or (expiration_year == int(str(datetime.now().year)[2:]) and expiration_month <= datetime.now().month):
-                return RedirectResponse(url="/check_card/?message=Срок действия карты истек", status_code=303)  
+                return RedirectResponse(url="/check_card/?message=Срок действия карты истек", status_code=303)
+
         except (ValueError, IndexError):
             return RedirectResponse(url="/check_card/?message=Неправильный формат срока действия карты", status_code=303)
 
@@ -277,10 +278,29 @@ async def create_check_card(
         async with db as conn:
             try:
                 cursor = conn.cursor()
-                # Получаем ID пользователя из сессии
                 user_id = request.session.get("user_id")
                 if not user_id:
                     return RedirectResponse(url="/check_card/?message=Пользователь не авторизован", status_code=303)
+
+                # Получаем ID товара и их количество из корзины
+                cursor.execute("""
+                    SELECT cart_items.product_id, cart_items.quantity
+                    FROM cart_items
+                    JOIN carts ON cart_items.cart_id = carts.id
+                    WHERE carts.user_id = ?
+                """, (user_id,))
+                cart_items = cursor.fetchall()
+
+                # Проверяем доступность товаров на складе
+                for product_id, quantity in cart_items:
+                    cursor.execute("SELECT quantity FROM products WHERE id = ?", (product_id,))
+                    product = cursor.fetchone()
+                    if not product or product[0] < quantity:
+                        return RedirectResponse(url="/check_card/?message=Недостаточное количество товара на складе", status_code=303)
+
+                # Уменьшаем количество товаров на складе
+                for product_id, quantity in cart_items:
+                    cursor.execute("UPDATE products SET quantity = quantity - ? WHERE id = ?", (quantity, product_id))
 
                 # Удаляем все товары из корзины пользователя
                 cursor.execute("DELETE FROM cart_items WHERE cart_id IN (SELECT id FROM carts WHERE user_id = ?)", (user_id,))
@@ -289,14 +309,14 @@ async def create_check_card(
                 # Перенаправляем пользователя на страницу проверки карты с сообщением об успехе
                 return RedirectResponse(url="/check_card/?message=Покупка успешно завершена!", status_code=303)
             except sqlite3.Error as e:
-                # Перенаправляем с сообщением об ошибке
                 return RedirectResponse(url=f"/check_card/?message=Ошибка: {str(e)}", status_code=303)
+
             except Exception as e:
-                # Перенаправляем с сообщением об ошибке
                 return RedirectResponse(url=f"/check_card/?message=Ошибка: {str(e)}", status_code=303)
+
     except Exception as e:
-        # Перенаправляем с сообщением об ошибке
         return RedirectResponse(url=f"/check_card/?message=Ошибка: {str(e)}", status_code=303)
+
 
 # Выход пользователя из аккаунта
 @app.post("/logout/")
